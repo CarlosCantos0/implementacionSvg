@@ -1,0 +1,6 @@
+.cuadrado {
+  margin-right: 10px; /* Espacio entre cuadrados */
+}
+.cuadrados-container {
+  display: flex;
+}
