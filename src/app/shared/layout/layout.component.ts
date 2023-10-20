@@ -19,8 +19,8 @@ export class LayoutComponent implements OnInit {
   ngOnInit(): void {
     const formaGuardada = localStorage.getItem('formaSeleccionada');
       //console.log('forma guardada: ' + formaGuardada)
-      if (formaGuardada){
-        this.dibujar.recuperarForma()
+      if (formaGuardada !== ''){
+        this.dibujar.leerFormaStorage()
       }
   }
 
@@ -32,7 +32,7 @@ export class LayoutComponent implements OnInit {
     { label: 'Añadir', icon: 'add'},
   ];
 
-
+  //Gestionamos que valor pulsamos en el Layout para saber que forma vamos a pintar
   onItemClick(index: number) {
     switch (index) {
       case 0:
@@ -41,7 +41,6 @@ export class LayoutComponent implements OnInit {
         break;
 
       case 1:
-        //Al pulsar en el item del sidenav llamamos al método para definir que la forma que vamos a hacer es un cuadrado
         this.dibujar.definirForma('cuadrado-rectangulo');
         break;
 
@@ -56,8 +55,7 @@ export class LayoutComponent implements OnInit {
         break;
 
       case 4:
-        //Llamamos al método para definir que la forma que vamos a hacer es un cuadrado
-        this.dibujar.definirForma('');
+        this.dibujar.definirForma('');  //Cuando la forma es igual a '' no aparecerá nada o si hay valor en el LocalStorage cogerá este
         break;
 
     }

@@ -9,22 +9,22 @@
       <label for="coordY">Coordenada Y:</label>
       <input type="number" id="coordY" placeholder="Añade coordenada Y" [(ngModel)]="svg.coordY" />
     </div>
-    <div *ngIf="formaSeleccionada !== 'texto' && formaSeleccionada !== 'linea'">
+    <div *ngIf="formaSeleccionada === 'cuadrado-rectangulo'">
       <label for="width">Ancho: </label>
       <input type="number" id="width" placeholder="Añade el ancho" [(ngModel)]="svg.width" />
     </div>
-    <div *ngIf="formaSeleccionada !== 'texto' && formaSeleccionada !== 'linea'">
+    <div *ngIf="formaSeleccionada === 'cuadrado-rectangulo'">
       <label for="height">Alto: </label>
       <input type="number" id="height" placeholder="Añade el alto" [(ngModel)]="svg.height" />
     </div>
     <br>
-    <div *ngIf="formaSeleccionada !== 'texto' && formaSeleccionada !== 'linea' " >
+    <div *ngIf="formaSeleccionada === 'cuadrado-rectangulo'">
       <input type="checkbox" [(ngModel)]="rellenadoFigura" (click)="getRellenado()" />
       <label>Rellenado de figura?</label>
     </div>
-    <div *ngIf="formaSeleccionada !== 'linea' && rellenadoFigura || formaSeleccionada === 'texto' " >
+    <div>
       <label for="color">Color: </label>
-      <input type="color" id="color" placeholder="Añade el color deseado" [(ngModel)]="svg.color" />
+      <input type="color" id="color" placeholder="Añade el color deseado" [(ngModel)]="svg.stroke" />
 
     </div>
 </div>
@@ -64,9 +64,9 @@
   <label for="y2">Coordenada final Y:</label>
   <input type="number" id="y2" placeholder="Añade coordenada Y2" [(ngModel)]="svg.y2" />
 
-  <br>
+  <!-- <br>
   <label for="stroke">Color de Línea:</label>
-  <input type="color" id="stroke" placeholder="Color de línea" [(ngModel)]="svg.stroke" />
+  <input type="color" id="stroke" placeholder="Color de línea" [(ngModel)]="svg.color" /> -->
 
   <br>
   <label for="strokeWidth">Ancho de Línea:</label>
@@ -75,8 +75,9 @@
 
 
 <button *ngIf="svg.forma !== ''" (click)="descargarSVG()">Descargar SVG Personalizado</button>
-<button (click)="formarSvg()">Añadir forma</button>
+<button (click)="generarSvg()">Añadir forma</button>
 <button (click)="resetFormas()">Resetear vista</button>
 <br>
- <div [innerHTML]="generarSvgCompleto()" ></div>
+<div [innerHTML]="generarSvgCompleto()" ></div> <!-- Insertando el svg en el html -->
+
 

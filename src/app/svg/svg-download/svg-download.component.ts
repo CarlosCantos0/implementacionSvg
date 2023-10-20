@@ -12,14 +12,16 @@ export class SvgDownloadComponent implements OnInit, OnDestroy {
 
   rellenadoFigura: boolean = false;
   fuentesDisponibles: Fuentes[] = ['Arial', 'sans-serif', 'serif', 'monospace', 'Times New Roman'];
-  formas: SafeHtml[] = [];
-  almacenFormas: Svg[] = [];
+  formas: SafeHtml[] = [];      //Guardamos lo que vamos a insertar en el HTML safeHtml por el XSS(Cross-Site Scripting)
+  almacenFormas: Svg[] = [];    //Guardamos las formas para luego encapsularlas entre etiquetas svg
   formaSeleccionada: Formas = '';
-  formaRecuperada: Formas = '';
-  private formaSubscription: Subscription = new Subscription();
+  formaRecuperada: Formas = localStorage.getItem('formaSeleccionada') as Formas; //Recuperar la forma del LocalStorage
+  private formaSubscription: Subscription = new Subscription(); //Subscripcion al evento para saber la forma que va a tomar mi figura
+  id: number = 0;
 
+  //Definimos los atributos que darán la forma a nuestro SVG
   svg: Svg = {
-    id: 0,
+    id: this.id,
     forma: '',
     coordX: 150,
     coordY: 150,
@@ -37,26 +39,19 @@ export class SvgDownloadComponent implements OnInit, OnDestroy {
     strokeWidth: 2,
   };
 
+  //Inyectamos el servicio y el sanitizer para "sanar" el HTML que insertamos a través del [InnerHtml]
   constructor(
     private dibujar: DibujarService,
     private sanitizer: DomSanitizer
   ) {}
 
+  //Llamamos a los métodos para subscribirse al evento de la forma e inicializar el SVG con la forma seleccionada
   ngOnInit(): void {
-    // Suscripción al servicio para obtener la forma seleccionada
-    this.formaSubscription = this.dibujar.obtenerFormaSubject().subscribe((forma: string) => {
-      this.formaSeleccionada = forma as Formas;
-      this.svg.forma = this.formaSeleccionada;
-    });
-
-    // Suscripción al servicio para recuperar una forma previamente seleccionada
-    this.dibujar.recuperarForma().subscribe((forma) => {
-      this.formaRecuperada = forma;
-      this.svg.forma = this.formaRecuperada;
-    });
+    this.inicializarFormaSubscription();
+    this.inicializarSvg();
   }
 
-  // Cambia el estado del checkbox y notifica al servicio
+  // Cambia el estado del checkbox de rellenado y notifica al servicio
   getRellenado() {
     this.rellenadoFigura = !this.rellenadoFigura;
     this.dibujar.setBoleano(this.rellenadoFigura);
@@ -71,7 +66,7 @@ export class SvgDownloadComponent implements OnInit, OnDestroy {
     return sanitizedSvg;
   }
 
-  // Limpia la lista de formas generadas
+  // Limpia la lista de formas generadas para limpiar la vista previa
   resetFormas() {
     this.formas.length = 0;
   }
@@ -85,15 +80,32 @@ export class SvgDownloadComponent implements OnInit, OnDestroy {
     this.svg.forma = this.formaSeleccionada;
   }
 
-  // Genera y almacena un nuevo objeto SVG
-  formarSvg(): void {
-    const nuevoSvg: Svg = { ...this.svg }; // Clonar el objeto this.svg
-    const svgString = this.dibujar.updateSvgContent(nuevoSvg);
-    this.dibujar.formarSvg(svgString);
-    this.almacenFormas.push(nuevoSvg);
+  //Nos subscribimos para obtener la forma desde el servicio
+  private inicializarFormaSubscription() {
+    this.formaSubscription = this.dibujar.obtenerFormaSubject().subscribe((forma: string) => {
+      this.formaSeleccionada = forma as Formas;
+      this.svg.forma = this.formaSeleccionada;
+    });
   }
 
-  // Llama al método para generar el SVG y permite su descarga
+  private inicializarSvg() {
+    // Configurar las propiedades iniciales de svg
+    this.svg.id = this.id++;
+    if (this.formaRecuperada) {
+      this.formaSeleccionada = this.formaRecuperada;
+      this.definirForma();
+    }
+  }
+
+  // Genera y almacena un nuevo objeto SVG
+  generarSvg(): void {
+    const nuevoSvg: Svg = { ...this.svg }; // Clonar el objeto this.svg
+    const svgString = this.dibujar.updateSvgContent(nuevoSvg);  //Le damos el valor a svgString con la cadena que vamos a insertar en el HTML
+    this.dibujar.guardarSvg(svgString);  //Se lo pasamos al servicio para añadirlo al arreglo
+    this.almacenFormas.push(nuevoSvg);  //añadimos la nueva forma a mi array en el cual luego encapsulo el contenido con etiquetas <svg>
+  }
+
+  // Llama al método para generar el contenido SVG y posteriormente permite su descarga
   descargarSVG() {
     if (this.formas.length === 0) return;
 
