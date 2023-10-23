@@ -5,13 +5,14 @@ export type Formas = 'cuadrado-rectangulo' | 'linea' | 'texto' | '';
 export type Fuentes = 'Arial' | 'sans-serif' | 'serif' | 'monospace' | 'Times New Roman' | '';
 
 export interface Svg {
+  rellenado: boolean;
   id: number;
   forma: Formas;
   coordX: number;
   coordY: number;
   width: number;
   height: number;
-  color: string;
+  fill: string;
   textoIntroducido: string;
   fuente: Fuentes;
   tamanoLetra: number;
@@ -29,17 +30,22 @@ export interface Svg {
 export class DibujarService {
   rellenado: boolean = false;
   private formas: string[] = [];
+  private formasAlmacen: Svg[] = [];
   private formaSubject = new Subject<string>();
   contenedor: string = '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600">';
 
   constructor() {}
 
-  // Cambia el estado del checkbox rellenado
-  setBoleano(valor: boolean) {
-    this.rellenado = valor;
+  getFiguraPorId(id: number): Svg | undefined {
+    return this.formasAlmacen.find((figura) => figura.id === id);
   }
 
-  // Lee el localStorage para recuperar la última forma seleccionada que se ha guardado
+  // Cambia el estado del checkbox rellenado
+  setRellenado(rellenado: boolean):void {
+    this.rellenado = rellenado;
+  }
+
+  // Lee el localStorage para recuperar la última forma seleccionada que se ha guardado y si es así la asigna como valor
   leerFormaStorage(): Observable<Formas> {
     if (!localStorage) throw new Error('LocalStorage no está disponible');
 
@@ -50,7 +56,7 @@ export class DibujarService {
     }
 
     // Define la forma recuperada
-    this.definirForma(formaRecuperada);
+    this.definirForma(formaRecuperada); //Llamamos al método para definir una forma
     return of(formaRecuperada as Formas);
   }
 
@@ -58,28 +64,29 @@ export class DibujarService {
   definirForma(forma: Formas): void {
     if (forma === '') throw new Error('No has seleccionado ninguna opción!');
 
-    // Notifica a los observadores sobre la forma seleccionada
+    // Emite el valor a los componentes subscritos sobre la forma seleccionada
     this.formaSubject.next(forma);
-    localStorage.setItem('formaSeleccionada', forma);
+    localStorage.setItem('formaSeleccionada', forma); // Asigna el valor de la forma en el localStorage
 
   }
 
-  // Obtiene la forma del Subject (observable)
+  // Obtiene el valor de la forma mediante el Subject (observable)
   obtenerFormaSubject(): Observable<string> {
-    return this.formaSubject.asObservable();
+    return this.formaSubject.asObservable();  //Devolvemos como Observable para que el componente que reciba el valor no pueda emitir valores nuevos
   }
 
   // Añade la forma al array para formar el SVG definitivo
   guardarSvg(forma: string): void {
     if (forma === '') return;
     this.formas.push(forma);
-    console.log('servicio formas: ' + this.formas);
   }
 
-  // Obtiene las formas almacenadas
-  getFormasAlmacenadas(): string[]{
+  // Obtiene las formas almacenadas para editarlas posteriormente
+  getFormasAlmacenadas(): Svg[]{
     if (this.formas.length === 0) return [];
-    return this.formas;
+    //console.log(this.formasAlmacen)
+    // return this.formas;
+    return this.formasAlmacen;
   }
 
   // Genera un SVG personalizado y permite su descarga
@@ -109,20 +116,21 @@ export class DibujarService {
 
   // Método para generar contenido SVG basado en la forma seleccionada
   updateSvgContent(svg: Svg): string {
-    const { forma, coordX, coordY, width, height, color, textoIntroducido, fuente, tamanoLetra, x1, y1, x2, y2, stroke, strokeWidth } = svg;
+    const { forma, id, coordX, coordY, width, height, stroke, textoIntroducido, fuente, tamanoLetra, x1, y1, x2, y2, strokeWidth } = svg;
     let svgContent = '';
 
-    let fillAttribute = this.rellenado ? color : 'none';
-    let strokeAttribute = this.rellenado ? stroke : '#000000';
+    let fillAttribute = this.rellenado ? stroke : 'none';
 
     if (forma === 'cuadrado-rectangulo') {
-      svgContent = `<rect x="${coordX}" y="${coordY}" width="${width}" height="${height}" fill="${fillAttribute}" stroke="${color}" stroke-width="${strokeWidth}"`;
-      svgContent += ' />';
+      svgContent = `<g id="figura-${id}"><rect id="${id}" x="${coordX}" y="${coordY}" width="${width}" height="${height}" fill="${fillAttribute}" stroke="${stroke}" stroke-width="${strokeWidth}" class="cuadrado-rectangulo"`;
+      svgContent += ' /></g>';
     } else if (forma === 'texto') {
-      svgContent = `<text x="${coordX}" y="${coordY}" font-family="${fuente}" font-size="${tamanoLetra}" fill="${color}">${textoIntroducido}</text>`;
+      svgContent = `<text id="${id}" x="${coordX}" y="${coordY}" font-family="${fuente}" font-size="${tamanoLetra}" fill="${stroke}" class="texto">${textoIntroducido}</text>`;
     } else if (forma === 'linea') {
-      svgContent = `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${stroke}" stroke-width="${strokeWidth}" />`;
+      svgContent = `<line id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${stroke}" stroke-width="${strokeWidth}" class="linea" />`;
     }
+
+    this.formasAlmacen.push(svg); // Guardamos los objetos svg para luego poder editarlos mediante id
 
     return svgContent;
   }

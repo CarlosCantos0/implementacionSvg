@@ -19,7 +19,7 @@
     </div>
     <br>
     <div *ngIf="formaSeleccionada === 'cuadrado-rectangulo'">
-      <input type="checkbox" [(ngModel)]="rellenadoFigura" (click)="getRellenado()" />
+      <input type="checkbox" [(ngModel)]='svg.rellenado' />
       <label>Rellenado de figura?</label>
     </div>
     <div>
@@ -64,10 +64,6 @@
   <label for="y2">Coordenada final Y:</label>
   <input type="number" id="y2" placeholder="Añade coordenada Y2" [(ngModel)]="svg.y2" />
 
-  <!-- <br>
-  <label for="stroke">Color de Línea:</label>
-  <input type="color" id="stroke" placeholder="Color de línea" [(ngModel)]="svg.color" /> -->
-
   <br>
   <label for="strokeWidth">Ancho de Línea:</label>
   <input type="number" id="strokeWidth" placeholder="Indica el ancho de la línea" [(ngModel)]="svg.strokeWidth" />
@@ -78,6 +74,23 @@
 <button (click)="generarSvg()">Añadir forma</button>
 <button (click)="resetFormas()">Resetear vista</button>
 <br>
-<div [innerHTML]="generarSvgCompleto()" ></div> <!-- Insertando el svg en el html -->
+<!--  <div [innerHTML]="generarSvgCompleto()" (dblclick)="editarFigura($event)"></div> Insertando el svg en el html -->
+
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600">
+  <ng-container *ngFor="let figura of formasAlmacen">
+    <g (dblclick)="editarFigura(figura)" [attr.id]="'figura-' + figura.id">
+      <rect
+        [attr.x]="figura.coordX"
+        [attr.y]="figura.coordY"
+        [attr.width]="figura.width"
+        [attr.height]="figura.height"
+        [attr.fill]="figura.rellenado ? figura.stroke: 'none'"
+        [attr.stroke]="figura.stroke"
+        [attr.stroke-width]="figura.strokeWidth"
+      />
+    </g>
+  </ng-container>
+</svg>
+
 
 
