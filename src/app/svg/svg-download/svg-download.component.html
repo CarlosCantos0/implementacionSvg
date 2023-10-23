@@ -70,27 +70,59 @@
 </div>
 
 
-<button *ngIf="svg.forma !== ''" (click)="descargarSVG()">Descargar SVG Personalizado</button>
-<button (click)="generarSvg()">Añadir forma</button>
+<button *ngIf="svg.forma !== '' && mostrarFormularioEdicion !== true" (click)="descargarSVG()">Descargar SVG Personalizado</button>
+<button *ngIf="mostrarFormularioEdicion !== true" (click)="generarSvg()">Añadir forma</button>
 <button (click)="resetFormas()">Resetear vista</button>
 <br>
-<!--  <div [innerHTML]="generarSvgCompleto()" (dblclick)="editarFigura($event)"></div> Insertando el svg en el html -->
+<div *ngIf="mostrarFormularioEdicion">
+  <button (click)="guardarCambios()">Guardar Cambios</button>
+  <button (click)="cancelarEdicion()">Cancelar</button>
+</div>
+<br>
+ <!-- <div [innerHTML]="generarSvgCompleto()" (dblclick)="editarFigura($event)"></div> Insertando el svg en el html -->
 
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600">
   <ng-container *ngFor="let figura of formasAlmacen">
     <g (dblclick)="editarFigura(figura)" [attr.id]="'figura-' + figura.id">
-      <rect
-        [attr.x]="figura.coordX"
-        [attr.y]="figura.coordY"
-        [attr.width]="figura.width"
-        [attr.height]="figura.height"
-        [attr.fill]="figura.rellenado ? figura.stroke: 'none'"
-        [attr.stroke]="figura.stroke"
-        [attr.stroke-width]="figura.strokeWidth"
-      />
+      <ng-container *ngIf="figura.forma === 'cuadrado-rectangulo'">
+        <!-- Cuadrado o Rectángulo -->
+        <rect
+          [attr.x]="figura.coordX"
+          [attr.y]="figura.coordY"
+          [attr.width]="figura.width"
+          [attr.height]="figura.height"
+          [attr.fill]="figura.rellenado ? figura.stroke : 'none'"
+          [attr.stroke]="figura.stroke"
+          [attr.stroke-width]="figura.strokeWidth"
+        />
+      </ng-container>
+      <ng-container *ngIf="figura.forma === 'texto'">
+        <!-- Texto -->
+        <text
+          [attr.x]="figura.coordX"
+          [attr.y]="figura.coordY"
+          [attr.font-family]="figura.fuente"
+          [attr.font-size]="figura.tamanoLetra"
+          [attr.fill]="figura.stroke"
+        >
+          {{ figura.textoIntroducido }}
+        </text>
+      </ng-container>
+      <ng-container *ngIf="figura.forma === 'linea'">
+        <!-- Línea -->
+        <line
+          [attr.x1]="figura.x1"
+          [attr.y1]="figura.y1"
+          [attr.x2]="figura.x2"
+          [attr.y2]="figura.y2"
+          [attr.stroke]="figura.stroke"
+          [attr.stroke-width]="figura.strokeWidth"
+        />
+      </ng-container>
     </g>
   </ng-container>
 </svg>
+
 
 
 

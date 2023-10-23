@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DibujarService, Formas, Fuentes, Svg } from '../../shared/services/dibujar.service';
 import { Subscription } from 'rxjs';
-import { SafeHtml, DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-svg-download',
@@ -10,16 +9,16 @@ import { SafeHtml, DomSanitizer } from '@angular/platform-browser';
 })
 export class SvgDownloadComponent implements OnInit, OnDestroy {
 
-  aplicarRelleno: boolean = false;
   fuentesDisponibles: Fuentes[] = ['Arial', 'sans-serif', 'serif', 'monospace', 'Times New Roman'];
-  formas: SafeHtml[] = [];      //Guardamos lo que vamos a insertar en el HTML safeHtml por el XSS(Cross-Site Scripting)
   formaSeleccionada: Formas = '';
   formaRecuperada: Formas = localStorage.getItem('formaSeleccionada') as Formas; //Recuperar la forma del LocalStorage
   private formaSubscription: Subscription = new Subscription(); //Subscripcion al evento para saber la forma que va a tomar mi figura
   id: number = 0;
   edicionActiva: boolean = false;
 
-  formasAlmacen: Svg[] = [];
+  formasAlmacen: Svg[] = [];  //Guardamos las distintas figuras para realizar la vista previa y el svgCompleto
+  mostrarFormularioEdicion: boolean = false;
+  figuraSeleccionada: Svg | null = null;
 
   //Definimos los atributos que darán la forma a nuestro SVG
   svg: Svg = {
@@ -42,10 +41,11 @@ export class SvgDownloadComponent implements OnInit, OnDestroy {
     strokeWidth: 2,
   };
 
-  //Inyectamos el servicio y el sanitizer para "sanar" el HTML que insertamos a través del [InnerHtml]
+
+
+  //Inyectamos el servicio para manejar nuestra lógica
   constructor(
     private dibujar: DibujarService,
-    private sanitizer: DomSanitizer
   ) {}
 
   //Llamamos a los métodos para subscribirse al evento de la forma e inicializar el SVG con la forma seleccionada
@@ -79,15 +79,14 @@ export class SvgDownloadComponent implements OnInit, OnDestroy {
 
   // Cambia el estado del checkbox de rellenado y notifica al servicio
   getRellenado(): void {
-    this.aplicarRelleno = !this.svg.rellenado;
-    //this.dibujar.setRellenado(this.rellenadoFigura);
-    this.svg.rellenado = this.aplicarRelleno;
+    this.svg.rellenado = !this.svg.rellenado;
   }
 
 
   // Limpia la lista de formas generadas para limpiar la vista previa
   resetFormas() {
-    this.formas.length = 0;
+    this.formasAlmacen.length = 0;
+    this.mostrarFormularioEdicion = false;  //Por si estamos en el modo edición nos sacará de este
   }
 
   // Define la forma del SVG que vamos a crear
@@ -101,73 +100,43 @@ export class SvgDownloadComponent implements OnInit, OnDestroy {
     const nuevoSvg: Svg = { ...this.svg }; // Clonar el objeto this.svg
     const svgString = this.dibujar.updateSvgContent(nuevoSvg);  //Le damos el valor a svgString con la cadena que vamos a insertar en el HTML
     this.dibujar.guardarSvg(svgString);  //Se lo pasamos al servicio para añadirlo al arreglo
-    this.formasAlmacen.push(nuevoSvg);
-    console.log(this.formasAlmacen)
+    this.formasAlmacen.push(nuevoSvg);  //Añadimos el svg que acabamos de hacer a nuestro almacen de svg's
   }
 
   // Llama al método del servicio que genera el contenido SVG y posteriormente permite su descarga
   descargarSVG() {
-    if (this.formas.length === 0) return;
-    this.dibujar.downloadCustomSvg();
-  }
+    this.dibujar.setRellenado(this.svg.rellenado);
 
-  // Genera la vista previa en el componente
-  generarSvgCompleto(): SafeHtml {
-    this.formas = this.dibujar.getFormasAlmacenadas();  //Array de safeHtml para insertar su contenido en el html
-    const contenidoSvg = this.formas.join('');
+    const contenidoSvg = this.formasAlmacen.map(figura => this.dibujar.updateSvgContent(figura)).join('');
     const svgCompleto = this.dibujar.contenedor + contenidoSvg + '</svg';
-    const sanitizedSvg = this.sanitizer.bypassSecurityTrustHtml(svgCompleto);
-    return sanitizedSvg;
+
+    this.dibujar.downloadCustomSvg();
+    this.resetFormas();  //Llamamos al método para que la vista previa se resetee
   }
 
-  editarFigura(event: any) {
-    console.log('editar figura')
-    event.stopPropagation();
-    if (event.target instanceof SVGGElement) {
-      const figuraGroup = event.target as SVGGElement;
-      const id = figuraGroup.getAttribute('id');
-      console.log(id)
-      if (id !== null) {
-        // Aquí puedes realizar acciones específicas según el tipo de figura
-        console.log('Figura id:', id);
-        // Resto de la lógica para elementos SVG...
-      }
+
+  //Método para editar los valores de la figura que seleccionemos con doble click
+  editarFigura(figura: Svg) {
+    if(figura as Svg)  //Si existe la figura la copiamos y activamos la edicion
+    this.mostrarFormularioEdicion = true;
+    this.figuraSeleccionada = { ...figura};
+    console.log('editando figura: ' + figura)
+  }
+
+  guardarCambios() {
+    const figuraIndex = this.formasAlmacen.findIndex((f) => f.id === this.svg.id);
+    if (figuraIndex !== -1) {
+      this.formasAlmacen[figuraIndex] = { ...this.svg };
+      console.log(this.svg)
+      console.log('Figura actualizada:', this.formasAlmacen[figuraIndex]);
     }
+    this.mostrarFormularioEdicion = false; // Oculta el formulario de edición
   }
-  // // Método para editar los valores asignados de cada figura mediante el ID
-  // editarFigura(event: any) {
-  //   if (event.target instanceof SVGElement) {
-  //     const svgElement = event.target as SVGElement;
-  //     const rectElements = svgElement.getElementsByTagName('rect');
 
-  //     // Ahora, rectElements contiene todos los elementos 'rect' en el SVG
-  //     Array.from(rectElements).forEach((rect) => {
-  //       const id = rect.getAttribute('id');
-  //       console.log(id);
-  //       if (id !== null) {
-  //         const figura = this.dibujar.getFiguraPorId(parseInt(id, 10));
-  //         if (figura) {
-  //           this.edicionActiva = true;
-  //           this.formaSeleccionada = figura.forma;
-  //           console.log(this.edicionActiva, this.formaSeleccionada)
-  //           if(this.edicionActiva) {
-  //             const nuevoColor = 'red';
-  //             figura.color = nuevoColor;
-  //             this.svg.color = figura.color
-  //             console.log(this.svg.color)
-  //           }
-  //         }
-  //       }
-  //     });
-  //   }
-  // }
-
-
-
-
-
-
-
+  cancelarEdicion() {
+    this.mostrarFormularioEdicion = false; // Oculta el formulario de edición
+    this.svg.forma = '';
+  }
 
 
 

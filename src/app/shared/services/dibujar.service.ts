@@ -79,13 +79,12 @@ export class DibujarService {
   guardarSvg(forma: string): void {
     if (forma === '') return;
     this.formas.push(forma);
+    console.log(this.formas)
   }
 
   // Obtiene las formas almacenadas para editarlas posteriormente
   getFormasAlmacenadas(): Svg[]{
     if (this.formas.length === 0) return [];
-    //console.log(this.formasAlmacen)
-    // return this.formas;
     return this.formasAlmacen;
   }
 
@@ -119,7 +118,7 @@ export class DibujarService {
     const { forma, id, coordX, coordY, width, height, stroke, textoIntroducido, fuente, tamanoLetra, x1, y1, x2, y2, strokeWidth } = svg;
     let svgContent = '';
 
-    let fillAttribute = this.rellenado ? stroke : 'none';
+    let fillAttribute = svg.rellenado ? stroke : 'none';
 
     if (forma === 'cuadrado-rectangulo') {
       svgContent = `<g id="figura-${id}"><rect id="${id}" x="${coordX}" y="${coordY}" width="${width}" height="${height}" fill="${fillAttribute}" stroke="${stroke}" stroke-width="${strokeWidth}" class="cuadrado-rectangulo"`;
