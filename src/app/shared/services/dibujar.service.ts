@@ -30,8 +30,7 @@ export interface Svg {
 })
 export class DibujarService {
   rellenado: boolean = false;
-  private formas: string[] = [];
-  private formasAlmacen: Svg[] = [];
+  private formasAlmacen: Svg[] = [];  //Almacen compartido con el componente para realizar la descarga y vistaPrevia
   private formaSubject = new Subject<string>();
   contenedor: string = '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600">';
 
@@ -64,7 +63,6 @@ export class DibujarService {
     // Emite el valor a los componentes subscritos sobre la forma seleccionada
     this.formaSubject.next(forma);
     localStorage.setItem('formaSeleccionada', forma); // Asigna el valor de la forma en el localStorage
-
   }
 
   // Obtiene el valor de la forma mediante el Subject (observable)
@@ -72,24 +70,14 @@ export class DibujarService {
     return this.formaSubject.asObservable();  //Devolvemos como Observable para que el componente que reciba el valor no pueda emitir valores nuevos
   }
 
-  // Añade la forma al array para formar el SVG definitivo
-  guardarStringSvg(forma: string): void {
-    if (forma === '') return;
-    this.formas.push(forma);
-    console.log(this.formas)
-  }
-
-  // Obtiene las formas almacenadas para editarlas posteriormente
+  // Obtiene las formas almacenadas para editarlas posteriormente y realizar la descarga
   getFormasAlmacenadas(): Svg[]{
-    if (this.formasAlmacen.length === 0) return [];
     return this.formasAlmacen;
   }
 
   // Genera un SVG personalizado y permite su descarga
   downloadCustomSvg(): void {
     const contenidoSvg = this.formasAlmacen.map(figura => figura.svgContent).join('');
-    console.log(contenidoSvg)
-    console.log(this.formasAlmacen[1].svgContent )
     const svgFormado = this.contenedor + contenidoSvg + '</svg>';
     console.log('completo: ' + svgFormado);  //!! El valor de SVGFormado es el string con el esquema encapsulado del svg generado
 
@@ -109,7 +97,7 @@ export class DibujarService {
     // Limpia el enlace, la URL del Blob y el arreglo
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    this.formas = [];
+    this.formasAlmacen = [];
   }
 
   // Método para generar contenido SVG basado en la forma seleccionada y sus propiedades
@@ -128,18 +116,29 @@ export class DibujarService {
       svgContent = `<line id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${stroke}" stroke-width="${strokeWidth}" class="linea" />`;
     }
 
-    this.formasAlmacen.push(svg); // Guardamos los objetos svg para luego poder editarlos mediante id
     svg.svgContent = svgContent;
     return svgContent;
   }
 
+  //Actualiza la lista del almacen y el valor del contenido del SVG para luego poder descargarlo
   actualizarForma(id: number, nuevaForma: Svg): void {
     const index = this.formasAlmacen.findIndex((f) => f.id === id);
     if (index !== -1) {
-      this.formasAlmacen[index] = nuevaForma;
+      this.formasAlmacen[index] = nuevaForma; //Actualiza el objeto svg al nuevo
       this.formasAlmacen[index].svgContent = this.updateSvgContent(nuevaForma); // Actualiza el svgContent
     }
   }
+  // Método para limpiar las formas almacenadas
+  limpiarFormasAlmacenadas():Svg[] {
+    this.formasAlmacen = [];
+    return this.formasAlmacen = [];
+  }
 
+  //Guardar SVG editado
+  agregarForma(nuevoSvg: Svg) {
+    const svgString = this.updateSvgContent(nuevoSvg);  // Genera el contenido SVG
+    nuevoSvg.svgContent = svgString;
+    this.formasAlmacen.push(nuevoSvg);  // Agrega la figura al arreglo de formas
+  }
 
 }
