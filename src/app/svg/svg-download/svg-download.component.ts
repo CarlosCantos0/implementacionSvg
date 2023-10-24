@@ -36,6 +36,7 @@ export class SvgDownloadComponent implements OnInit, OnDestroy {
     y2: 200,
     stroke: '#000000',
     strokeWidth: 2,
+    svgContent: ''
   };
 
   //Definimos los atributos que darán la forma a nuestro SVG
@@ -57,6 +58,7 @@ export class SvgDownloadComponent implements OnInit, OnDestroy {
     y2: 200,
     stroke: '#000000',
     strokeWidth: 2,
+    svgContent: ''
   };
 
   //Inyectamos el servicio para manejar nuestra lógica
@@ -70,7 +72,7 @@ export class SvgDownloadComponent implements OnInit, OnDestroy {
     this.inicializarFormaSubscription();
     this.inicializarSvg();
     this.formasAlmacen = this.dibujar.getFormasAlmacenadas();
-    console.log(this.formasAlmacen)
+    //console.log(this.formasAlmacen)
   }
 
   ngOnDestroy(): void {
@@ -116,19 +118,14 @@ export class SvgDownloadComponent implements OnInit, OnDestroy {
     this.figuraSeleccionada.id = this.id++;
     const nuevoSvg: Svg = { ...this.figuraSeleccionada }; // Clonar el objeto this.figuraSeleccionada
     const svgString = this.dibujar.updateSvgContent(nuevoSvg);  //Le damos el valor a svgString con la cadena que vamos a insertar en el HTML
-    this.dibujar.guardarSvg(svgString);  //Se lo pasamos al servicio para añadirlo al arreglo
     this.formasAlmacen.push(nuevoSvg);  //Añadimos el svg que acabamos de hacer a nuestro almacen de svg's
-    // Llama a la función para restablecer los valores del formulario
-    this.resetFormulario();
+
+    this.resetFormulario();// Función para restablecer los valores del formulario
   }
 
   // Llama al método del servicio que genera el contenido SVG y posteriormente permite su descarga
   descargarSVG() {
     this.dibujar.setRellenado(this.figuraSeleccionada.rellenado);
-
-    const contenidoSvg = this.formasAlmacen.map(figura => this.dibujar.updateSvgContent(figura)).join('');
-    const svgCompleto = this.dibujar.contenedor + contenidoSvg + '</svg';
-
     this.dibujar.downloadCustomSvg();
     this.resetFormas();  //Llamamos al método para que la vista previa se resetee
   }
@@ -148,8 +145,8 @@ export class SvgDownloadComponent implements OnInit, OnDestroy {
       const figuraIndex = this.formasAlmacen.findIndex((f) => f.id === this.figuraSeleccionada!.id);
       if (figuraIndex !== -1) {
 
+        this.dibujar.actualizarForma(this.figuraSeleccionada.id, this.figuraSeleccionada);
         this.formasAlmacen[figuraIndex] = { ...this.figuraSeleccionada as Svg };
-        console.log(this.figuraSeleccionada)
         console.log('Figura actualizada:', this.formasAlmacen[figuraIndex]);
 
         // Activa la detección de cambios de Angular para actualizar la vista
@@ -162,7 +159,7 @@ export class SvgDownloadComponent implements OnInit, OnDestroy {
 
   cancelarEdicion() {
     this.mostrarFormularioEdicion = false; // Oculta el formulario de edición
-    this.figuraSeleccionada.forma = '';
+    this.figuraSeleccionada.forma = this.formaSeleccionada;
   }
 
   resetFormulario() {

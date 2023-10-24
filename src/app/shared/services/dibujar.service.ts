@@ -22,6 +22,7 @@ export interface Svg {
   y2: number;
   stroke: string;
   strokeWidth: number;
+  svgContent: string;
 }
 
 @Injectable({
@@ -35,10 +36,6 @@ export class DibujarService {
   contenedor: string = '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600">';
 
   constructor() {}
-
-  getFiguraPorId(id: number): Svg | undefined {
-    return this.formasAlmacen.find((figura) => figura.id === id);
-  }
 
   // Cambia el estado del checkbox rellenado
   setRellenado(rellenado: boolean):void {
@@ -76,7 +73,7 @@ export class DibujarService {
   }
 
   // Añade la forma al array para formar el SVG definitivo
-  guardarSvg(forma: string): void {
+  guardarStringSvg(forma: string): void {
     if (forma === '') return;
     this.formas.push(forma);
     console.log(this.formas)
@@ -90,8 +87,10 @@ export class DibujarService {
 
   // Genera un SVG personalizado y permite su descarga
   downloadCustomSvg(): void {
-    const svgCompleto = this.formas.join('');
-    const svgFormado = this.contenedor + svgCompleto + '</svg>';
+    const contenidoSvg = this.formasAlmacen.map(figura => figura.svgContent).join('');
+    console.log(contenidoSvg)
+    console.log(this.formasAlmacen[1].svgContent )
+    const svgFormado = this.contenedor + contenidoSvg + '</svg>';
     console.log('completo: ' + svgFormado);  //!! El valor de SVGFormado es el string con el esquema encapsulado del svg generado
 
     //!! ESTO solo ES PARA HACER LA DESCARGA
@@ -113,7 +112,7 @@ export class DibujarService {
     this.formas = [];
   }
 
-  // Método para generar contenido SVG basado en la forma seleccionada
+  // Método para generar contenido SVG basado en la forma seleccionada y sus propiedades
   updateSvgContent(svg: Svg): string {
     const { forma, id, coordX, coordY, width, height, stroke, textoIntroducido, fuente, tamanoLetra, x1, y1, x2, y2, strokeWidth } = svg;
     let svgContent = '';
@@ -130,7 +129,17 @@ export class DibujarService {
     }
 
     this.formasAlmacen.push(svg); // Guardamos los objetos svg para luego poder editarlos mediante id
-
+    svg.svgContent = svgContent;
     return svgContent;
   }
+
+  actualizarForma(id: number, nuevaForma: Svg): void {
+    const index = this.formasAlmacen.findIndex((f) => f.id === id);
+    if (index !== -1) {
+      this.formasAlmacen[index] = nuevaForma;
+      this.formasAlmacen[index].svgContent = this.updateSvgContent(nuevaForma); // Actualiza el svgContent
+    }
+  }
+
+
 }

@@ -81,7 +81,7 @@
 <br>
  <!-- <div [innerHTML]="generarSvgCompleto()" (dblclick)="editarFigura($event)"></div> Insertando el svg en el html -->
 
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600" class="p-3">
   <ng-container *ngFor="let figura of formasAlmacen">
     <g (dblclick)="editarFigura(figura)" [attr.id]="'figura-' + figura.id">
       <ng-container *ngIf="figura.forma === 'cuadrado-rectangulo'">
