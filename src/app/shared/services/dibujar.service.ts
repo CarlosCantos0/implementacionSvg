@@ -84,7 +84,7 @@ export class DibujarService {
 
   // Obtiene las formas almacenadas para editarlas posteriormente
   getFormasAlmacenadas(): Svg[]{
-    if (this.formas.length === 0) return [];
+    if (this.formasAlmacen.length === 0) return [];
     return this.formasAlmacen;
   }
 

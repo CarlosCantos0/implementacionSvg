@@ -3,28 +3,28 @@
   <h1>Ajustar {{ formaSeleccionada | titlecase}} - </h1>
     <div *ngIf="formaSeleccionada !== 'linea'">
       <label for="coordX">Coordenada X: </label>
-      <input type="number" id="coordX" placeholder="Añade coordenada X" [(ngModel)]="svg.coordX" />
+      <input type="number" id="coordX" placeholder="Añade coordenada X" [(ngModel)]="figuraSeleccionada.coordX" />
     </div>
     <div *ngIf="formaSeleccionada !== 'linea'">
       <label for="coordY">Coordenada Y:</label>
-      <input type="number" id="coordY" placeholder="Añade coordenada Y" [(ngModel)]="svg.coordY" />
+      <input type="number" id="coordY" placeholder="Añade coordenada Y" [(ngModel)]="figuraSeleccionada.coordY" />
     </div>
     <div *ngIf="formaSeleccionada === 'cuadrado-rectangulo'">
       <label for="width">Ancho: </label>
-      <input type="number" id="width" placeholder="Añade el ancho" [(ngModel)]="svg.width" />
+      <input type="number" id="width" placeholder="Añade el ancho" [(ngModel)]="figuraSeleccionada!.width" />
     </div>
     <div *ngIf="formaSeleccionada === 'cuadrado-rectangulo'">
       <label for="height">Alto: </label>
-      <input type="number" id="height" placeholder="Añade el alto" [(ngModel)]="svg.height" />
+      <input type="number" id="height" placeholder="Añade el alto" [(ngModel)]="figuraSeleccionada!.height" />
     </div>
     <br>
     <div *ngIf="formaSeleccionada === 'cuadrado-rectangulo'">
-      <input type="checkbox" [(ngModel)]='svg.rellenado' />
+      <input type="checkbox" [(ngModel)]='figuraSeleccionada!.rellenado' />
       <label>Rellenado de figura?</label>
     </div>
     <div>
       <label for="color">Color: </label>
-      <input type="color" id="color" placeholder="Añade el color deseado" [(ngModel)]="svg.stroke" />
+      <input type="color" id="color" placeholder="Añade el color deseado" [(ngModel)]="figuraSeleccionada!.stroke" />
 
     </div>
 </div>
@@ -33,44 +33,44 @@
 <div *ngIf="formaSeleccionada === 'texto'">
   <hr>
   <label for="fuente">Fuente:</label>
-  <select type="text" id="fuente" [(ngModel)]="svg.fuente" placeholder="Seleccione la fuente del texto">
+  <select type="text" id="fuente" [(ngModel)]="figuraSeleccionada.fuente" placeholder="Seleccione la fuente del texto">
     <option *ngFor="let fuente of fuentesDisponibles" [value]="fuente">{{ fuente }}</option>
   </select>
 
   <br>
   <label for="tamanoLetra">Tamaño de Letra:</label>
-  <input type="number" id="tamanoLetra" placeholder="Indica el tamaño de letra" [(ngModel)]="svg.tamanoLetra" />
+  <input type="number" id="tamanoLetra" placeholder="Indica el tamaño de letra" [(ngModel)]="figuraSeleccionada.tamanoLetra" />
 
   <br>
   <label for="textoIntroducido">Texto a introducir: </label>
-  <input type="text" id="textoIntroducido" placeholder="Añade el texto deseado" [(ngModel)]="svg.textoIntroducido" />
+  <input type="text" id="textoIntroducido" placeholder="Añade el texto deseado" [(ngModel)]="figuraSeleccionada.textoIntroducido" />
 </div>
 
 <hr>
 
 <div *ngIf="formaSeleccionada === 'linea'">
   <label for="x1">Coordenada de incio X: </label>
-  <input type="number" id="x1" placeholder="Añade coordenada X1" [(ngModel)]="svg.x1" />
+  <input type="number" id="x1" placeholder="Añade coordenada X1" [(ngModel)]="figuraSeleccionada.x1" />
 
   <br>
   <label for="y1">Coordenada de inicio Y:</label>
-  <input type="number" id="y1" placeholder="Añade coordenada Y1" [(ngModel)]="svg.y1" />
+  <input type="number" id="y1" placeholder="Añade coordenada Y1" [(ngModel)]="figuraSeleccionada.y1" />
 
   <br>
   <label for="x2">Coordenada final X:</label>
-  <input type="number" id="x2" placeholder="Añade coordenada X2" [(ngModel)]="svg.x2" />
+  <input type="number" id="x2" placeholder="Añade coordenada X2" [(ngModel)]="figuraSeleccionada.x2" />
 
   <br>
   <label for="y2">Coordenada final Y:</label>
-  <input type="number" id="y2" placeholder="Añade coordenada Y2" [(ngModel)]="svg.y2" />
+  <input type="number" id="y2" placeholder="Añade coordenada Y2" [(ngModel)]="figuraSeleccionada.y2" />
 
   <br>
   <label for="strokeWidth">Ancho de Línea:</label>
-  <input type="number" id="strokeWidth" placeholder="Indica el ancho de la línea" [(ngModel)]="svg.strokeWidth" />
+  <input type="number" id="strokeWidth" placeholder="Indica el ancho de la línea" [(ngModel)]="figuraSeleccionada.strokeWidth" />
 </div>
 
 
-<button *ngIf="svg.forma !== '' && mostrarFormularioEdicion !== true" (click)="descargarSVG()">Descargar SVG Personalizado</button>
+<button *ngIf="figuraSeleccionada.forma !== '' && mostrarFormularioEdicion !== true" (click)="descargarSVG()">Descargar SVG Personalizado</button>
 <button *ngIf="mostrarFormularioEdicion !== true" (click)="generarSvg()">Añadir forma</button>
 <button (click)="resetFormas()">Resetear vista</button>
 <br>
